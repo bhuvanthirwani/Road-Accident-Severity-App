@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Road Accident Severity Prediction</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
+    <div class="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
+        <h1 class="text-xl font-bold mb-4 text-gray-700">Accident Severity Prediction</h1>
+        <form id="predictionForm" method="POST">
+            {% csrf_token %}
+            <div id="formFields"></div>
+            <button type="submit" class="mt-4 w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded">
+                Predict
+            </button>
+        </form>
+    </div>
+    <script>
+        const formFields = document.getElementById("formFields");
+        const inputVariables = JSON.parse('{{ prediction_inputs|escapejs }}');
+        for (const [key, value] of Object.entries(inputVariables)) {
+            if (value.type === "dropdown") {
+                const dropdown = `
+                    <div class="mb-4">
+                        <label for="${key}" class="block text-sm font-medium text-gray-700">${key}</label>
+                        <select id="${key}" name="${key}" class="w-full mt-1 block py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm">
+                            ${Object.entries(value.dropdownValues)
+                                .map(([val, display]) => `<option value="${val}">${display}</option>`)
+                                .join("")}
+                        </select>
+                    </div>`;
+                formFields.innerHTML += dropdown;
+            } else if (value.type === "text") {
+                const textField = `
+                    <div class="mb-4">
+                        <label for="${key}" class="block text-sm font-medium text-gray-700">${key}</label>
+                        <input type="text" id="${key}" name="${key}" class="w-full mt-1 block py-2 px-3 border border-gray-300 rounded-md shadow-sm">
+                    </div>`;
+                formFields.innerHTML += textField;
+            }
+        }
+    </script>
+</body>
+</html>
