@@ -1,3 +1,240 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.auth.models import User
+import uuid
+from db.connect import get_db
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+import pickle
+import numpy as np
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout as auth_logout
+from django.http import JsonResponse
+from db.connect import get_db
+# from middleware.auth import is_logged_in
+from utils.auth import hash_password, verify_password
+from bson import ObjectId
+from django.views.decorators.csrf import csrf_exempt
 
-# Create your views here.
+def register_user(request):
+    if request.method == 'POST':
+        db = get_db()
+        username = request.POST['username']
+        password = request.POST['password']
+        users_collection = db['users']
+
+        # Check if username already exists
+        if users_collection.find_one({'username': username}):
+            return render(request, 'register.html', {'error': 'Username already exists'})
+
+        # Register new user
+        user = {
+            'id': str(uuid.uuid4()),
+            'username': username,
+            'hashed_password': hash_password(password),
+        }
+        users_collection.insert_one(user)
+        return redirect('login')
+
+    return render(request, 'register.html')
+
+# @login_required
+def home(request):
+    # Example home view to check if user is logged in
+    print("HOME...")
+    return render(request, 'home.html')
+
+def login_user(request):
+    if request.method == 'POST':
+        db = get_db()
+        username = request.POST['username']
+        password = request.POST['password']
+        users_collection = db['users']
+
+        # Fetch user from MongoDB
+        user = users_collection.find_one({'username': username})
+
+        # Validate credentials
+        if user and verify_password(password, user['hashed_password']):
+            # Log the user in by storing their ID in the session
+            request.session['user_id'] = user['id']
+            return render(request, 'home.html')
+        else:
+            return render(request, 'login.html', {'error': 'Invalid credentials'})
+
+    return render(request, 'login.html')
+
+def logout_user(request):
+    auth_logout(request)
+    request.session['user_id'] = None  # Clears session
+    return redirect('login')
+
+
+# @login_required
+def add_data(request):
+    db = get_db()
+    variables_collection = db['data_variables_collection']
+    dataset_collection = db['additional_dataset_collection']
+
+    # Fetch the document with "type": "variables"
+    data_variables = variables_collection.find_one({'type': 'variables'})
+    variables = data_variables.get('variables', []) if data_variables else []
+
+    if request.method == 'POST':
+        # Collect and append form data to the collection
+        data = {key: request.POST[key] for key in request.POST if key != 'csrfmiddlewaretoken'}
+        data['user_id'] = request.session['user_id']
+        data['id'] = str(uuid.uuid4())  # Attach the user ID
+        dataset_collection.insert_one(data)
+        return redirect('home')  # Redirect to the home page after submission
+    # print("variables: ", variables)
+    return render(request, 'add_data.html', {'variables': variables})
+
+def list_data_api(request):
+    db = get_db()
+    dataset_collection = db['additional_dataset_collection']
+    variables_collection = db['data_variables_collection']
+
+    # Fetch all entries for the current user
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return JsonResponse({'error': 'User not authenticated'}, status=401)
+
+    # Fetch the data entries for the user
+    user_entries = list(dataset_collection.find({'user_id': user_id}, {"_id": 0}))
+
+    # Fetch the schema for dynamic table headers
+    data_variables = variables_collection.find_one({'type': 'variables'})
+    variables = data_variables.get('variables', []) if data_variables else []
+
+    # Preprocess entries to replace dropdown values with display names
+    for entry in user_entries:
+        for variable in variables:
+            if variable['type'] == 'dropdown':
+                dropdown_key = variable['key']
+                dropdown_values = {item['value']: item['displayName'] for item in variable.get('dropdownValues', [])}
+                entry[dropdown_key] = dropdown_values.get(entry.get(dropdown_key), 'N/A')
+
+    # Return JSON response with user entries and variables
+    return JsonResponse({'entries': user_entries, 'variables': variables})
+
+def list_data(request):
+    # Fetch data as before
+    db = get_db()
+    dataset_collection = db['additional_dataset_collection']
+    variables_collection = db['data_variables_collection']
+
+    # Fetch all entries for the current user
+    user_id = request.session['user_id']
+    user_entries = list(dataset_collection.find({'user_id': user_id}, {"_id": 0}))
+
+    # Fetch the schema for dynamic table headers
+    data_variables = variables_collection.find_one({'type': 'variables'}, {"_id": 0})
+    variables = data_variables.get('variables', []) if data_variables else []
+
+    # Pass the template without actual data (we will fill it via JS)
+    return render(request, 'list_data.html', {
+        'variables': variables,  # Pass the variables for rendering in the template (if needed)
+    })
+
+def modify_data(request):
+    db = get_db()
+    dataset_collection = db['additional_dataset_collection']
+    variables_collection = db['data_variables_collection']
+
+    # Fetch the variables for dynamic form rendering
+    data_variables = variables_collection.find_one({'type': 'variables'})
+    variables = data_variables.get('variables', []) if data_variables else []
+
+    # Fetch user-specific data (e.g., by session user ID)
+    user_id = request.session['user_id']
+    user_data = dataset_collection.find_one({'user_id': user_id})
+
+    if request.method == 'POST':
+        # Update the user’s data in the collection
+        updated_data = {key: request.POST[key] for key in request.POST if key != 'csrfmiddlewaretoken'}
+        dataset_collection.update_one(
+            {'id': user_data['id']},  # Use the user's specific record ID
+            {'$set': updated_data}
+        )
+        return redirect('home')  # Redirect to the home page after saving changes
+    print("variables: ", variables, "current_data: ", user_data)
+    return render(request, 'modify_data.html', {
+        'variables': variables,
+        'current_data': user_data or {}
+    })
+
+def modify_specific_data(request, entry_id):
+    db = get_db()
+    dataset_collection = db['additional_dataset_collection']
+    variables_collection = db['data_variables_collection']
+
+    # Fetch the variables for dynamic form rendering
+    data_variables = variables_collection.find_one({'type': 'variables'})
+    variables = data_variables.get('variables', []) if data_variables else []
+
+    # Fetch the specific entry to edit
+    entry = dataset_collection.find_one({'id': entry_id})
+
+    
+    print(variables, entry)
+    return render(request, 'modify_data.html', {
+        'entry_id': entry_id,
+        'variables': variables,
+        'current_data': entry
+    })
+
+@csrf_exempt 
+def update_entry(request):
+    if request.method == 'POST':
+        # Get the entry_id and the updated data from the POST request
+        entry_id = request.POST.get('entry_id')
+        updated_data = {key: value for key, value in request.POST.items() if key != 'csrfmiddlewaretoken' and key != 'entry_id'}
+        
+        # Validate entry_id
+        if not entry_id:
+            return JsonResponse({'status': 'failure', 'message': 'Entry ID is missing'})
+
+        db = get_db()
+        dataset_collection = db['additional_dataset_collection']
+        
+        # Update the data in the database
+        result = dataset_collection.update_one(
+            {'id': entry_id},
+            {'$set': updated_data}
+        )
+
+        if result.modified_count > 0:
+            return JsonResponse({'status': 'success', 'message': 'Data updated successfully'})
+        else:
+            return JsonResponse({'status': 'failure', 'message': 'No data was updated'})
+
+    return JsonResponse({'status': 'failure', 'message': 'Invalid request method'})
+
+def get_current_data(request, entry_id):
+    # Connect to your database collections
+    db = get_db()
+    dataset_collection = db['additional_dataset_collection']
+    variables_collection = db['data_variables_collection']
+
+    # Fetch the variables for dynamic form rendering
+    data_variables = variables_collection.find_one({'type': 'variables'})
+    variables = data_variables.get('variables', []) if data_variables else []
+
+    # Fetch the specific entry to edit
+    entry = dataset_collection.find_one({'id': entry_id})
+
+    return JsonResponse({
+        'variables': variables,
+        'current_data': entry
+    })
+
+# @login_required
+def road_accident_prediction(request):
+    if request.method == 'POST':
+        with open('ml_models/road_accident_model.pkl', 'rb') as model_file:
+            model = pickle.load(model_file)
+        inputs = np.array([float(request.POST.get(key)) for key in request.POST.keys()]).reshape(1, -1)
+        prediction = model.predict(inputs)
+        return JsonResponse({'severity': prediction[0]})
+    return render(request, 'prediction.html')

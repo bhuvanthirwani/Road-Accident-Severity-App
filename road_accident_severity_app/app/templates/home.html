@@ -10,11 +10,11 @@
     <div class="w-full max-w-lg p-6 bg-white rounded-lg shadow-md">
         <h1 class="text-2xl font-bold mb-6 text-gray-700 text-center">Home</h1>
         <div class="space-y-4">
-            <a href="{% url 'data_collection' %}" class="block w-full bg-blue-500 hover:bg-blue-600 text-white text-center font-bold py-2 px-4 rounded">
+            <a href="{% url 'add_data' %}" class="block w-full bg-blue-500 hover:bg-blue-600 text-white text-center font-bold py-2 px-4 rounded">
                 Data Collection
             </a>
-            <a href="{% url 'data_modification' %}" class="block w-full bg-green-500 hover:bg-green-600 text-white text-center font-bold py-2 px-4 rounded">
-                Data Modification
+            <a href="{% url 'list_user_data' %}" class="block w-full bg-green-500 hover:bg-green-600 text-white text-center font-bold py-2 px-4 rounded">
+                View/ Edit your Data
             </a>
             <a href="{% url 'road_accident_prediction' %}" class="block w-full bg-yellow-500 hover:bg-yellow-600 text-white text-center font-bold py-2 px-4 rounded">
                 Accident Severity Prediction
