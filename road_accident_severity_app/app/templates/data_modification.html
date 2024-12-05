@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Modification</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
+    <div class="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
+        <h1 class="text-xl font-bold mb-4 text-gray-700">Data Modification</h1>
+        <form id="dataModificationForm" method="POST">
+            {% csrf_token %}
+            <div id="formFields"></div>
+            <button type="submit" class="mt-4 w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+                Modify
+            </button>
+        </form>
+    </div>
+    <script>
+        const formFields = document.getElementById("formFields");
+        const userData = JSON.parse('{{ user_data|escapejs }}');
+        for (const [key, value] of Object.entries(userData)) {
+            const textField = `
+                <div class="mb-4">
+                    <label for="${key}" class="block text-sm font-medium text-gray-700">${key}</label>
+                    <input type="text" id="${key}" name="${key}" value="${value}" class="w-full mt-1 block py-2 px-3 border border-gray-300 rounded-md shadow-sm">
+                </div>`;
+            formFields.innerHTML += textField;
+        }
+    </script>
+</body>
+</html>
