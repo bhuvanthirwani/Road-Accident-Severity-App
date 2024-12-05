@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 import uuid
@@ -238,3 +239,101 @@ def road_accident_prediction(request):
         prediction = model.predict(inputs)
         return JsonResponse({'severity': prediction[0]})
     return render(request, 'prediction.html')
+
+def get_variables(request):
+    db = get_db()
+    variables_collection = db['data_variables_collection']
+    variables_doc = variables_collection.find_one({"type": "variables"}, {"_id": 0})
+    return JsonResponse({"variables": variables_doc.get("variables", [])})
+
+def one_hot_encode(input_data):
+    db = get_db()
+    one_hot_collection = db['data_variables_collection']
+    one_hot_doc = one_hot_collection.find_one({"type": "variables"}, {"_id": 0})
+    one_hot_variables = one_hot_doc.get("variables", [])
+
+    one_hot_encoded = {}
+    for variable in one_hot_variables:
+        key = variable["key"]
+        # print("variable", variable)
+        if variable["encoding"] == "one_hot":
+            # print("JJ")
+            dropdown_values = variable.get("dropdownValues", [])
+            for option in dropdown_values:
+                column_name = option["col_name"]
+                value = input_data.get(key)
+                one_hot_encoded[column_name] = 1 if option["value"] == value else 0
+
+    return one_hot_encoded
+
+def ordinal(input_data):
+    db = get_db()
+    one_hot_collection = db['data_variables_collection']
+    one_hot_doc = one_hot_collection.find_one({"type": "variables"}, {"_id": 0})
+    one_hot_variables = one_hot_doc.get("variables", [])
+
+    one_hot_encoded = {}
+    for variable in one_hot_variables:
+        key = variable["key"]
+        if variable["encoding"] == "ordinal":
+            dropdown_values = variable.get("dropdownValues", [])
+            for option in dropdown_values:
+                value = input_data.get(key)
+                one_hot_encoded[key] = option["value"]
+
+    return one_hot_encoded
+@csrf_exempt
+def predict(request):
+    if request.method == "POST":
+        input_data = json.loads(request.body)
+
+        # One-hot encode the input
+        one_hot_data = one_hot_encode(input_data)
+        print("one_hot_data: ", one_hot_data)
+
+        ordinal_data = ordinal(input_data)
+        print("ordinal: ", ordinal_data)
+        # Prepare data for model prediction
+        input_vector = np.array([one_hot_data[key] for key in sorted(one_hot_data.keys())]).reshape(1, -1)
+        # prediction = model.predict(input_vector)
+        prediction = ["Hurrah"]
+        return JsonResponse({"prediction": prediction[0]})
+    return render(request, 'prediction.html') 
+
+@csrf_exempt
+def generate_chart(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        x_variable = data.get('xVariable')
+        y_variable = data.get('yVariable')
+        filter_value = data.get('filterValue')
+
+        # Connect to MongoDB
+        db = get_db()
+        collection = db['dataset_collection']
+
+        # Filter data by the provided Y variable value
+        filtered_data = list(collection.find({y_variable: filter_value}))
+
+        # Count occurrences of each X variable value
+        total_count = len(filtered_data)
+        x_counts = {}
+        for entry in filtered_data:
+            x_val = entry.get(x_variable)
+            if x_val not in x_counts:
+                x_counts[x_val] = 0
+            x_counts[x_val] += 1
+
+        # Calculate percentage for each X variable value
+        labels = []
+        values = []
+        for x_val, count in x_counts.items():
+            labels.append(x_val)
+            values.append((count / total_count) * 100)
+
+        return JsonResponse({"labels": labels, "values": values})
+    return JsonResponse({"error": "Invalid request method"}, status=400)
+
+
+def visualization_page(request):
+    return render(request, "visualization.html")
