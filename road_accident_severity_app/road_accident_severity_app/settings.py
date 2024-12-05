@@ -28,9 +28,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'middleware.auth.LoginRequiredMiddleware',
 ]
 
-ROOT_URLCONF = 'myproject.urls'
+ROOT_URLCONF = 'road_accident_severity_app.urls'
 
 TEMPLATES = [
     {
@@ -48,16 +49,35 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'myproject.wsgi.application'
+WSGI_APPLICATION = 'road_accident_severity_app.wsgi.application'
 
-# MongoDB connection
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'djongo',
+#         'NAME': 'Road_Accident_Severity',  # Replace with your MongoDB database name
+#         'CLIENT': {
+#             'host': 'mongodb://localhost:27017',  # Replace with your MongoDB URI
+#             # 'username': 'your_username',         # Optional, if MongoDB authentication is used
+#             # 'password': 'your_password',         # Optional
+#             # 'authSource': 'admin',               # Optional, typically used for authentication
+#             # 'authMechanism': 'SCRAM-SHA-1',      # Optional, authentication mechanism
+#         },
+#         'ENFORCE_SCHEMA': False,
+#     }
+# }
 DATABASES = {
     'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    },
+    'mongodb': {
         'ENGINE': 'djongo',
-        'NAME': 'your_database_name',
-        'ENFORCE_SCHEMA': False,
+      'NAME': 'Road_Accident_Severity',
+      'HOST': 'localhost',
+      'PORT': 27017,
     }
 }
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},

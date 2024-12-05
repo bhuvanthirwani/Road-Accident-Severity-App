@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Data</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
+    <div class="w-full max-w-4xl bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold text-center text-gray-700 mb-4">My Data</h1>
+        <table id="data-table" class="table-auto w-full border-collapse border border-gray-300">
+            <thead>
+                <tr class="bg-gray-200" id="table-header">
+                    <!-- Table headers will be added here by JS -->
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <!-- Table rows will be added here by JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Fetch the data from the Django view
+        fetch('/list-data-api/', {
+            method: 'GET',  // Assuming this API is a GET request
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            const variables = data.variables; // List of variables (dropdown or text)
+            const entries = data.entries; // The actual data entries
+
+            // Get the table header element
+            const tableHeader = document.getElementById('table-header');
+            // Add ID column
+            tableHeader.innerHTML = '<th class="border border-gray-300 px-4 py-2">ID</th>';
+
+            // Dynamically create table headers based on the variables
+            variables.forEach(variable => {
+                const th = document.createElement('th');
+                th.classList.add('border', 'border-gray-300', 'px-4', 'py-2');
+                th.textContent = variable.displayName;
+                tableHeader.appendChild(th);
+            });
+
+            // Add Actions column
+            const actionsTh = document.createElement('th');
+            actionsTh.classList.add('border', 'border-gray-300', 'px-4', 'py-2');
+            actionsTh.textContent = 'Actions';
+            tableHeader.appendChild(actionsTh);
+
+            // Get the table body element
+            const tableBody = document.getElementById('table-body');
+            tableBody.innerHTML = '';  // Clear any existing rows
+
+            // Dynamically create rows based on the entries
+            entries.forEach(entry => {
+                const tr = document.createElement('tr');
+                tr.classList.add('text-center');
+
+                // Add the ID cell
+                const idTd = document.createElement('td');
+                idTd.classList.add('border', 'border-gray-300', 'px-4', 'py-2');
+                idTd.textContent = entry.id;
+                tr.appendChild(idTd);
+
+                // Add cells for each variable (including handling dropdown and text)
+                variables.forEach(variable => {
+                    const td = document.createElement('td');
+                    td.classList.add('border', 'border-gray-300', 'px-4', 'py-2');
+                    
+                    if (variable.type === 'dropdown') {
+                        // For dropdown, we will display the value based on entry[variable.key]
+                        const dropdownValue = variable.dropdownValues.find(option => option.displayName === entry[variable.key]);
+console.log("dropdownValue", variable.dropdownValues, entry, variable, entry[variable.key], dropdownValue);
+td.textContent = dropdownValue ? dropdownValue.displayName : 'N/A';
+                    } else {
+                        // For text fields, just display the value or 'N/A' if undefined
+                        td.textContent = entry[variable.key] || 'N/A';
+                    }
+
+                    tr.appendChild(td);
+                });
+
+                // Add the Actions cell with Edit button
+                const actionsTd = document.createElement('td');
+                actionsTd.classList.add('border', 'border-gray-300', 'px-4', 'py-2');
+                const editLink = document.createElement('a');
+                editLink.href = `/modify-page/${entry.id}`;  // Link to the modify page for this entry
+                editLink.classList.add('bg-blue-500', 'hover:bg-blue-600', 'text-white', 'font-bold', 'py-1', 'px-3', 'rounded');
+                editLink.textContent = 'Edit';
+                actionsTd.appendChild(editLink);
+                tr.appendChild(actionsTd);
+
+                // Append the row to the table body
+                tableBody.appendChild(tr);
+            });
+        })
+        .catch(error => console.error('Error fetching data:', error));
+    </script>
+</body>
+</html>
