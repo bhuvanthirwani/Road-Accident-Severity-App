@@ -39,7 +39,12 @@
             const tableHeader = document.getElementById('table-header');
             // Add ID column
             tableHeader.innerHTML = '<th class="border border-gray-300 px-4 py-2">ID</th>';
-
+            // Add Actions column
+            const actionsTh = document.createElement('th');
+            actionsTh.classList.add('border', 'border-gray-300', 'px-4', 'py-2');
+            actionsTh.textContent = 'Actions';
+            tableHeader.appendChild(actionsTh);
+            
             // Dynamically create table headers based on the variables
             variables.forEach(variable => {
                 const th = document.createElement('th');
@@ -48,11 +53,7 @@
                 tableHeader.appendChild(th);
             });
 
-            // Add Actions column
-            const actionsTh = document.createElement('th');
-            actionsTh.classList.add('border', 'border-gray-300', 'px-4', 'py-2');
-            actionsTh.textContent = 'Actions';
-            tableHeader.appendChild(actionsTh);
+            
 
             // Get the table body element
             const tableBody = document.getElementById('table-body');
@@ -68,7 +69,15 @@
                 idTd.classList.add('border', 'border-gray-300', 'px-4', 'py-2');
                 idTd.textContent = entry.id;
                 tr.appendChild(idTd);
-
+                // Add the Actions cell with Edit button
+                const actionsTd = document.createElement('td');
+                actionsTd.classList.add('border', 'border-gray-300', 'px-4', 'py-2');
+                const editLink = document.createElement('a');
+                editLink.href = `/modify-page/${entry.id}`;  // Link to the modify page for this entry
+                editLink.classList.add('bg-blue-500', 'hover:bg-blue-600', 'text-white', 'font-bold', 'py-1', 'px-3', 'rounded');
+                editLink.textContent = 'Edit';
+                actionsTd.appendChild(editLink);
+                tr.appendChild(actionsTd);
                 // Add cells for each variable (including handling dropdown and text)
                 variables.forEach(variable => {
                     const td = document.createElement('td');
@@ -87,15 +96,7 @@ td.textContent = dropdownValue ? dropdownValue.displayName : 'N/A';
                     tr.appendChild(td);
                 });
 
-                // Add the Actions cell with Edit button
-                const actionsTd = document.createElement('td');
-                actionsTd.classList.add('border', 'border-gray-300', 'px-4', 'py-2');
-                const editLink = document.createElement('a');
-                editLink.href = `/modify-page/${entry.id}`;  // Link to the modify page for this entry
-                editLink.classList.add('bg-blue-500', 'hover:bg-blue-600', 'text-white', 'font-bold', 'py-1', 'px-3', 'rounded');
-                editLink.textContent = 'Edit';
-                actionsTd.appendChild(editLink);
-                tr.appendChild(actionsTd);
+                
 
                 // Append the row to the table body
                 tableBody.appendChild(tr);

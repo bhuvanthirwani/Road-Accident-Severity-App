@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import register_user, login_user, logout_user, home, add_data, update_entry,list_data,list_data_api, modify_specific_data, road_accident_prediction, get_current_data
+from .views import register_user, login_user, logout_user, home, add_data, update_entry,list_data,list_data_api, modify_specific_data, road_accident_prediction, get_current_data, get_variables, predict, visualization_page, generate_chart
 
 urlpatterns = [
     path('register/', register_user, name='register'),
@@ -13,5 +13,10 @@ urlpatterns = [
     path('list-data/', list_data, name='list_user_data'),
     path('list-data-api/', list_data_api, name='list_data_api'),
     path('get-current-data/<str:entry_id>/', get_current_data, name='get_current_data'),
-    path('prediction/', road_accident_prediction, name='road_accident_prediction'),
+    path('prediction/', predict, name='road_accident_prediction_page'),
+    path("get-variables/", get_variables, name="get_variables"),
+    path("predict/", predict, name="predict"),
+    path("visualization-page/", visualization_page, name="visualization_page"),
+    path('generate-chart/', generate_chart, name='generate_chart'),
+    
 ]

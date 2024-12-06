@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Chart Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
+    <div class="w-full max-w-4xl bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold text-center text-gray-700 mb-4">Dynamic Chart Builder</h1>
+
+        <form id="chartForm" class="space-y-4">
+            <div>
+                <label for="xVariable" class="block text-sm font-medium text-gray-700">Select X Variable</label>
+                <select id="xVariable" name="xVariable" class="w-full mt-1 px-3 py-2 border rounded-md shadow-sm">
+                    <!-- Options will be dynamically populated -->
+                </select>
+            </div>
+            <div>
+                <label for="yVariable" class="block text-sm font-medium text-gray-700">Select Y Variable</label>
+                <select id="yVariable" name="yVariable" class="w-full mt-1 px-3 py-2 border rounded-md shadow-sm">
+                    <!-- Options will be dynamically populated -->
+                </select>
+            </div>
+            <div>
+                <label for="filterValue" class="block text-sm font-medium text-gray-700">Provide Filter Value for Y Variable</label>
+                <select id="filterValue" name="filterValue" class="w-full mt-1 px-3 py-2 border rounded-md shadow-sm">
+                    <!-- Options will be dynamically populated based on Y Variable -->
+                </select>
+            </div>
+            <button type="button" id="generateChart" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded font-bold">
+                Generate Chart
+            </button>
+        </form>
+
+        <div class="mt-6">
+            <canvas id="chartCanvas"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Fetch variable options for dropdowns
+        fetch('/get-variables/')
+            .then(response => response.json())
+            .then(data => {
+                const variables = data.variables;
+                const xVariableSelect = document.getElementById('xVariable');
+                const yVariableSelect = document.getElementById('yVariable');
+
+                // Populate X and Y variable dropdowns
+                variables.forEach(variable => {
+                    const option = document.createElement('option');
+                    option.value = variable.key;
+                    option.textContent = variable.displayName;
+
+                    xVariableSelect.appendChild(option);
+                    yVariableSelect.appendChild(option.cloneNode(true));
+                });
+
+                // Attach event listener to Y Variable for dynamic filter values
+                yVariableSelect.addEventListener('change', () => {
+                    const selectedYVariable = yVariableSelect.value;
+                    const filterValueSelect = document.getElementById('filterValue');
+
+                    // Find dropdown values for the selected Y variable
+                    const selectedVariable = variables.find(v => v.key === selectedYVariable);
+                    if (selectedVariable && selectedVariable.dropdownValues) {
+                        filterValueSelect.innerHTML = ''; // Clear previous options
+                        Object.entries(selectedVariable.dropdownValues).forEach(([key, value]) => {
+                            const option = document.createElement('option');
+                            option.value = key;
+                            option.textContent = value;
+                            filterValueSelect.appendChild(option);
+                        });
+                    } else {
+                        filterValueSelect.innerHTML = ''; // Clear options if no dropdown values
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.placeholder = 'Enter Value';
+                        input.classList.add('w-full', 'mt-1', 'px-3', 'py-2', 'border', 'rounded-md', 'shadow-sm');
+                        filterValueSelect.parentNode.replaceChild(input, filterValueSelect);
+                        input.id = 'filterValue';
+                        input.name = 'filterValue';
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching variables:', error));
+
+        // Handle chart generation
+        document.getElementById('generateChart').addEventListener('click', () => {
+            const xVariable = document.getElementById('xVariable').value;
+            const yVariable = document.getElementById('yVariable').value;
+            const filterValue = document.getElementById('filterValue').value;
+
+            fetch('/generate-chart/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify({ xVariable, yVariable, filterValue }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Create chart
+                    const ctx = document.getElementById('chartCanvas').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                label: `Distribution of ${xVariable} for ${yVariable} = ${filterValue}`,
+                                data: data.values,
+                                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1,
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: { beginAtZero: true }
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Error generating chart:', error));
+        });
+    </script>
+</body>
+</html>

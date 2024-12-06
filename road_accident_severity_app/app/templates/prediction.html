@@ -7,40 +7,123 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
-    <div class="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
-        <h1 class="text-xl font-bold mb-4 text-gray-700">Accident Severity Prediction</h1>
-        <form id="predictionForm" method="POST">
-            {% csrf_token %}
-            <div id="formFields"></div>
-            <button type="submit" class="mt-4 w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded">
+    <div class="w-full max-w-lg bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold text-center text-gray-700 mb-4">Predict Road Accident Severity</h1>
+        <form id="predictionForm" class="space-y-4">
+            <div id="formFields">
+                <!-- Dynamic fields will be injected here -->
+            </div>
+            <button
+                type="button"
+                id="submitButton"
+                class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded font-bold"
+            >
                 Predict
             </button>
         </form>
+        <div id="result" class="mt-4 hidden p-4 bg-green-100 border border-green-500 text-green-700 rounded">
+            <h2 class="text-lg font-semibold mb-2">Prediction Results</h2>
+            <table class="table-auto w-full border-collapse border border-green-500">
+                <thead>
+                    <tr>
+                        <th class="border border-green-500 px-4 py-2 text-left">Model</th>
+                        <th class="border border-green-500 px-4 py-2 text-left">Prediction</th>
+                    </tr>
+                </thead>
+                <tbody id="predictionTableBody">
+                    <!-- Rows will be dynamically added here -->
+                </tbody>
+            </table>
+        </div>
     </div>
+
     <script>
-        const formFields = document.getElementById("formFields");
-        const inputVariables = JSON.parse('{{ prediction_inputs|escapejs }}');
-        for (const [key, value] of Object.entries(inputVariables)) {
-            if (value.type === "dropdown") {
-                const dropdown = `
-                    <div class="mb-4">
-                        <label for="${key}" class="block text-sm font-medium text-gray-700">${key}</label>
-                        <select id="${key}" name="${key}" class="w-full mt-1 block py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm">
-                            ${Object.entries(value.dropdownValues)
-                                .map(([val, display]) => `<option value="${val}">${display}</option>`)
-                                .join("")}
-                        </select>
-                    </div>`;
-                formFields.innerHTML += dropdown;
-            } else if (value.type === "text") {
-                const textField = `
-                    <div class="mb-4">
-                        <label for="${key}" class="block text-sm font-medium text-gray-700">${key}</label>
-                        <input type="text" id="${key}" name="${key}" class="w-full mt-1 block py-2 px-3 border border-gray-300 rounded-md shadow-sm">
-                    </div>`;
-                formFields.innerHTML += textField;
-            }
+        // Fetch the variables and populate the form
+        fetch("/get-variables/")
+            .then((response) => response.json())
+            .then((data) => {
+                const { variables } = data;
+                const formFieldsDiv = document.getElementById("formFields");
+
+                // Populate form dynamically
+                variables.forEach((variable) => {
+                    console.log(variable.key)
+                    if (variable.key != 'Accident_severity'){
+                        const div = document.createElement("div");
+                    div.classList.add("mb-4");
+
+                    const label = document.createElement("label");
+                    label.classList.add("block", "text-sm", "font-medium", "text-gray-700");
+                    label.textContent = variable.displayName;
+
+                    const select = document.createElement("select");
+                    select.setAttribute("id", variable.key);
+                    select.setAttribute("name", variable.key);
+                    select.classList.add(
+                        "w-full",
+                        "mt-1",
+                        "px-3",
+                        "py-2",
+                        "border",
+                        "rounded-md",
+                        "shadow-sm"
+                    );
+
+                    variable.dropdownValues.forEach((dropdownValue) => {
+                        const option = document.createElement("option");
+                        option.setAttribute("value", dropdownValue.value);
+                        option.textContent = dropdownValue.displayName;
+                        select.appendChild(option);
+                    });
+
+                    div.appendChild(label);
+                    div.appendChild(select);
+                    formFieldsDiv.appendChild(div);
+                    }
+                    
+                });
+            });
+
+        // Handle the form submission
+        document.getElementById("submitButton").addEventListener("click", () => {
+            const formData = new FormData(document.getElementById("predictionForm"));
+            const payload = {};
+            formData.forEach((value, key) => {
+                payload[key] = value;
+            });
+
+            fetch("/predict/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    const resultDiv = document.getElementById("result");
+        const predictionTableBody = document.getElementById("predictionTableBody");
+
+        // Clear existing table rows
+        predictionTableBody.innerHTML = "";
+
+        // Populate table rows with the prediction results
+        for (const [model, prediction] of Object.entries(data.prediction)) {
+            const row = document.createElement("tr");
+            const modelCell = document.createElement("td");
+            const predictionCell = document.createElement("td");
+
+            modelCell.textContent = model;
+            predictionCell.textContent = prediction;
+
+            row.appendChild(modelCell);
+            row.appendChild(predictionCell);
+            predictionTableBody.appendChild(row);
         }
+
+        // Display the result div
+        resultDiv.classList.remove("hidden");
+                })
+                .catch((error) => console.error("Error during prediction:", error));
+        });
     </script>
 </body>
 </html>
