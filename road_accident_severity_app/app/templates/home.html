@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+    <title>Road Accident Analysis</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
@@ -20,7 +20,16 @@
                 Accident Severity Prediction
             </a>
             <a href="{% url 'visualization_page' %}" class="block w-full bg-purple-500 hover:bg-purple-600 text-white text-center font-bold py-2 px-4 rounded">
-                Visualization and Guidelines
+                Dynamic Data Visualization
+            </a>
+            <a href="{% url 'model_results' %}" class="block w-full bg-green-500 hover:bg-green-600 text-white text-center font-bold py-2 px-4 rounded">
+                Model Results
+            </a>
+            <a href="{% url 'eda' %}" class="block w-full bg-black hover:bg-gray-800 text-white text-center font-bold py-2 px-4 rounded">
+                EDA
+            </a>
+            <a href="{% url 'guidelines' %}" class="block w-full bg-pink-500 hover:bg-pink-800 text-black text-center font-bold py-2 px-4 rounded">
+                Guidelines
             </a>
         </div>
     </div>

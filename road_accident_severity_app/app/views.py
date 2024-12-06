@@ -509,3 +509,13 @@ def generate_chart(request):
 
 def visualization_page(request):
     return render(request, "visualization.html")
+
+def eda(request):
+    return render(request, "eda.html")
+
+def model_results(request):
+    return render(request, "model_results.html")
+
+def guidelines(request):
+    return render(request, "guidelines.html")
+

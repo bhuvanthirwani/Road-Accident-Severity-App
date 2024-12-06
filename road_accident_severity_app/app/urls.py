@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import register_user, login_user, logout_user, home, add_data, update_entry,list_data,list_data_api, modify_specific_data, road_accident_prediction, get_current_data, get_variables, predict, visualization_page, generate_chart
+from .views import register_user, login_user, logout_user, home, add_data, update_entry,list_data,list_data_api, modify_specific_data, guidelines, get_current_data, get_variables, predict, visualization_page, generate_chart, eda, model_results
 
 urlpatterns = [
     path('register/', register_user, name='register'),
@@ -18,5 +18,8 @@ urlpatterns = [
     path("predict/", predict, name="predict"),
     path("visualization-page/", visualization_page, name="visualization_page"),
     path('generate-chart/', generate_chart, name='generate_chart'),
+    path('eda/', eda, name='eda'),
+    path('model-results/', model_results, name='model_results'),
+    path('guidelines/', guidelines, name='guidelines'),
     
 ]
