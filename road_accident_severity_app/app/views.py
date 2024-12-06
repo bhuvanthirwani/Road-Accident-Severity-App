@@ -422,7 +422,7 @@ def predict(request):
         # print("input_vector: ", input_vector)
         result = {
             'SVM': '',
-            'Naive_Bayes': '',
+            'Random Forest': '',
             'ETC': '',
             'KNN': ''
         }
@@ -439,7 +439,7 @@ def predict(request):
                 break
 
 
-        with open('ml_models/Naive_Bayes_Oversampled_without_weights.pkl', 'rb') as model_file:
+        with open('ml_models/Random_Forest_Oversampled_without_weights.pkl', 'rb') as model_file:
             model = pickle.load(model_file)
         prediction = model.predict(input_vector)
         print("prediction: ", prediction)
@@ -448,7 +448,7 @@ def predict(request):
         # prediction = ["Hurrah"]
         for value in y_map['Accident_severity']:
             if y_map['Accident_severity'][value] == int(prediction[0]):
-                result['Naive_Bayes'] = value
+                result['Random Forest'] = value
                 break
 
         with open('ml_models/KNN_Oversampled_without_weights.pkl', 'rb') as model_file:
