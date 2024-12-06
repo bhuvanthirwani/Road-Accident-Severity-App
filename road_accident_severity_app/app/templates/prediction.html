@@ -22,7 +22,18 @@
             </button>
         </form>
         <div id="result" class="mt-4 hidden p-4 bg-green-100 border border-green-500 text-green-700 rounded">
-            <p id="predictionOutput"></p>
+            <h2 class="text-lg font-semibold mb-2">Prediction Results</h2>
+            <table class="table-auto w-full border-collapse border border-green-500">
+                <thead>
+                    <tr>
+                        <th class="border border-green-500 px-4 py-2 text-left">Model</th>
+                        <th class="border border-green-500 px-4 py-2 text-left">Prediction</th>
+                    </tr>
+                </thead>
+                <tbody id="predictionTableBody">
+                    <!-- Rows will be dynamically added here -->
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -36,7 +47,9 @@
 
                 // Populate form dynamically
                 variables.forEach((variable) => {
-                    const div = document.createElement("div");
+                    console.log(variable.key)
+                    if (variable.key != 'Accident_severity'){
+                        const div = document.createElement("div");
                     div.classList.add("mb-4");
 
                     const label = document.createElement("label");
@@ -66,6 +79,8 @@
                     div.appendChild(label);
                     div.appendChild(select);
                     formFieldsDiv.appendChild(div);
+                    }
+                    
                 });
             });
 
@@ -85,10 +100,27 @@
                 .then((response) => response.json())
                 .then((data) => {
                     const resultDiv = document.getElementById("result");
-                    const predictionOutput = document.getElementById("predictionOutput");
+        const predictionTableBody = document.getElementById("predictionTableBody");
 
-                    predictionOutput.textContent = `Prediction: ${data.prediction}`;
-                    resultDiv.classList.remove("hidden");
+        // Clear existing table rows
+        predictionTableBody.innerHTML = "";
+
+        // Populate table rows with the prediction results
+        for (const [model, prediction] of Object.entries(data.prediction)) {
+            const row = document.createElement("tr");
+            const modelCell = document.createElement("td");
+            const predictionCell = document.createElement("td");
+
+            modelCell.textContent = model;
+            predictionCell.textContent = prediction;
+
+            row.appendChild(modelCell);
+            row.appendChild(predictionCell);
+            predictionTableBody.appendChild(row);
+        }
+
+        // Display the result div
+        resultDiv.classList.remove("hidden");
                 })
                 .catch((error) => console.error("Error during prediction:", error));
         });
