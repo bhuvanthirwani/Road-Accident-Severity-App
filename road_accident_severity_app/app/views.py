@@ -1,4 +1,5 @@
 import json
+import os
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 import uuid
@@ -16,7 +17,7 @@ from db.connect import get_db
 from utils.auth import hash_password, verify_password
 from bson import ObjectId
 from django.views.decorators.csrf import csrf_exempt
-
+from django.templatetags.static import static
 y_map = {'Accident_severity': {
         'slight injury': 2, 'serious injury': 1, 'fatal injury': 0,
         }}
@@ -519,10 +520,40 @@ def visualization_page(request):
     return render(request, "visualization.html")
 
 def eda(request):
-    return render(request, "eda.html")
+    print(os.getcwd())
+    # Path to your image directory inside the static folder
+    image_dir = 'images/eda'  # Relative path from the static folder
+    
+    # List the image files (without the full path)
+    image_list = [
+        os.path.join(image_dir, img) for img in os.listdir(os.path.join(os.getcwd(), 'static', image_dir)) if img.endswith(('png', 'jpg', 'jpeg'))
+    ]
+    
+    # Create a list of dictionaries with the static file URLs
+    images = [
+        {'url': img, 'filename': img.replace(os.sep, '/').split('/')[-1]} for img in image_list
+    ]
+    
+    print("images: ", images)
+    return render(request, 'eda.html', {'images': images})
 
 def model_results(request):
-    return render(request, "model_results.html")
+    print(os.getcwd())
+    # Path to your image directory inside the static folder
+    image_dir = 'images/model_results'  # Relative path from the static folder
+    
+    # List the image files (without the full path)
+    image_list = [
+        os.path.join(image_dir, img) for img in os.listdir(os.path.join(os.getcwd(), 'static', image_dir)) if img.endswith(('png', 'jpg', 'jpeg'))
+    ]
+    
+    # Create a list of dictionaries with the static file URLs
+    images = [
+        {'url': img, 'filename': img.replace(os.sep, '/').split('/')[-1]} for img in image_list
+    ]
+    
+    print("images: ", images)
+    return render(request, 'model_results.html', {'images': images})
 
 def guidelines(request):
     return render(request, "guidelines.html")
