@@ -435,6 +435,7 @@ def predict(request):
         for value in y_map['Accident_severity']:
             if y_map['Accident_severity'][value] == int(prediction[0]):
                 result['SVM'] = value
+                break
 
 
         with open('ml_models/Naive_Bayes_Oversampled_without_weights.pkl', 'rb') as model_file:
@@ -447,6 +448,7 @@ def predict(request):
         for value in y_map['Accident_severity']:
             if y_map['Accident_severity'][value] == int(prediction[0]):
                 result['Naive_Bayes'] = value
+                break
 
         with open('ml_models/KNN_Oversampled_without_weights.pkl', 'rb') as model_file:
             model = pickle.load(model_file)
@@ -458,6 +460,7 @@ def predict(request):
         for value in y_map['Accident_severity']:
             if y_map['Accident_severity'][value] == int(prediction[0]):
                 result['KNN'] = value
+                break
 
         with open('ml_models/ETC_Oversampled_without_weights.pkl', 'rb') as model_file:
             model = pickle.load(model_file)
@@ -469,6 +472,7 @@ def predict(request):
         for value in y_map['Accident_severity']:
             if y_map['Accident_severity'][value] == int(prediction[0]):
                 result['ETC'] = value
+                break
         return JsonResponse({"prediction": result})
     return render(request, 'prediction.html') 
 
@@ -479,14 +483,18 @@ def generate_chart(request):
         x_variable = data.get('xVariable')
         y_variable = data.get('yVariable')
         filter_value = data.get('filterValue')
-
+        print("Filter Value: ", x_variable, y_variable, filter_value)
         # Connect to MongoDB
         db = get_db()
         collection = db['dataset_collection']
-
+        for value in y_map['Accident_severity']:
+            if y_map['Accident_severity'][value] == int(filter_value):
+                filter_value = value
+                break
+        
         # Filter data by the provided Y variable value
         filtered_data = list(collection.find({y_variable: filter_value}))
-
+        # print("filtered_data", filtered_data)
         # Count occurrences of each X variable value
         total_count = len(filtered_data)
         x_counts = {}
@@ -509,3 +517,13 @@ def generate_chart(request):
 
 def visualization_page(request):
     return render(request, "visualization.html")
+
+def eda(request):
+    return render(request, "eda.html")
+
+def model_results(request):
+    return render(request, "model_results.html")
+
+def guidelines(request):
+    return render(request, "guidelines.html")
+
