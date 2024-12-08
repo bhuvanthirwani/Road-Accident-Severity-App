@@ -16,7 +16,8 @@
             <button
                 type="button"
                 id="submitButton"
-                class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded font-bold"
+                class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded font-bold flex items-center justify-center"
+                disabled="true"
             >
                 Predict
             </button>
@@ -82,10 +83,18 @@
                     }
                     
                 });
+                document.getElementById("submitButton").disabled = false;
             });
 
         // Handle the form submission
         document.getElementById("submitButton").addEventListener("click", () => {
+            const submitButton = document.getElementById("submitButton");
+            submitButton.disabled = true;
+            submitButton.innerHTML = `<svg class="animate-spin h-5 w-5 mr-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 2.345.896 4.49 2.357 6.124l1.643-1.833z"></path>
+            </svg> Processing...`;
+
             const formData = new FormData(document.getElementById("predictionForm"));
             const payload = {};
             formData.forEach((value, key) => {
@@ -100,29 +109,34 @@
                 .then((response) => response.json())
                 .then((data) => {
                     const resultDiv = document.getElementById("result");
-        const predictionTableBody = document.getElementById("predictionTableBody");
+                    const predictionTableBody = document.getElementById("predictionTableBody");
 
-        // Clear existing table rows
-        predictionTableBody.innerHTML = "";
+                    // Clear existing table rows
+                    predictionTableBody.innerHTML = "";
 
-        // Populate table rows with the prediction results
-        for (const [model, prediction] of Object.entries(data.prediction)) {
-            const row = document.createElement("tr");
-            const modelCell = document.createElement("td");
-            const predictionCell = document.createElement("td");
+                    // Populate table rows with the prediction results
+                    for (const [model, prediction] of Object.entries(data.prediction)) {
+                        const row = document.createElement("tr");
+                        const modelCell = document.createElement("td");
+                        const predictionCell = document.createElement("td");
 
-            modelCell.textContent = model;
-            predictionCell.textContent = prediction;
+                        modelCell.textContent = model;
+                        predictionCell.textContent = prediction;
 
-            row.appendChild(modelCell);
-            row.appendChild(predictionCell);
-            predictionTableBody.appendChild(row);
-        }
+                        row.appendChild(modelCell);
+                        row.appendChild(predictionCell);
+                        predictionTableBody.appendChild(row);
+                    }
 
-        // Display the result div
-        resultDiv.classList.remove("hidden");
+                    // Display the result div
+                    resultDiv.classList.remove("hidden");
                 })
-                .catch((error) => console.error("Error during prediction:", error));
+                .catch((error) => console.error("Error during prediction:", error))
+                .finally(() => {
+                    // Restore button state
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = "Predict";
+                });
         });
     </script>
 </body>

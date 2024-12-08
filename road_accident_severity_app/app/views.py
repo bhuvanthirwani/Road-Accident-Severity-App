@@ -328,6 +328,30 @@ def update_entry(request):
 
     return JsonResponse({'status': 'failure', 'message': 'Invalid request method'})
 
+@csrf_exempt
+def delete_data(request):
+    if request.method == 'POST':
+        db = get_db()
+        data = json.loads(request.body)
+        entry_id = data.get('entry_id')
+        print("entry_id: ", entry_id)
+        dataset_collection = db['additional_dataset_collection']
+        
+        # Validate entry_id
+        if not entry_id:
+            return JsonResponse({'status': 'failure', 'message': 'Entry ID is missing'})
+
+        # Delete the document
+        result = dataset_collection.delete_one({'id': entry_id})
+
+        if result.deleted_count > 0:
+            return JsonResponse({'status': 'success', 'message': 'Document deleted successfully'})
+        else:
+            return JsonResponse({'status': 'failure', 'message': 'Document not found or could not be deleted'})
+
+    return JsonResponse({'status': 'failure', 'message': 'Invalid request method'})
+
+
 def get_current_data(request, entry_id):
     # Connect to your database collections
     db = get_db()
