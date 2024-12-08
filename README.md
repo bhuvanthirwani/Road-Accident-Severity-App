@@ -9,11 +9,13 @@
     <li><strong>Piyush Gulhane</strong> - 50608504</li>
 </ul>
 
+<h3>1. Live Demo Link: <a href="http://34.70.177.116:8000/login/" target="_blank">http://34.70.177.116:8000/login/</a> </h3>
+<p>This Instance may go down, if it goes down, I will update this link.</p>
 **Setup Instructions**
 
 <h3>1. Download the <code>ml_models.zip</code> File</h3>
 <p>First, download the <code>ml_models.zip</code> file from the following URL:</p>
-<p><a href="https://www.google.drive.com/fgd/gsdgsdgsdgs" target="_blank">Download ml_models.zip</a></p>
+<p><a href="https://drive.google.com/file/d/10cMzD10C5Z5I2Zi-fZYxg8TdpM4yQV5r/view?usp=sharing" target="_blank">Download ml_models.zip</a></p>
 <p><strong>Make sure to create a folder called <code>ml_models</code> in your project directory.</strong></p>
 <img src="road_accident_severity_app/images/ml_models.png" alt="Step 1: Download and extract ml_models.zip">
 
