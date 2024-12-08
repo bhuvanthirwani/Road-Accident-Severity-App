@@ -9,8 +9,17 @@
     <li><strong>Piyush Gulhane</strong> - 50608504</li>
 </ul>
 
-<h3>1. Live Demo Link: <a href="http://34.70.177.116:8000/login/" target="_blank">http://34.70.177.116:8000/login/</a> </h3>
-<p>This Instance may go down, if it goes down, I will update this link.</p>
+**App Features**
+<h4>1. Login & Registraion</h4>
+<h4>2. Add/Edit/Delete Data for Road Accidents</h4>
+<h4>3. Predict Accident Severity</h4>
+<h4>4. Dynamic Chart Visualtization from the Dataset</h4>
+<h4>5. ML Model Results</h4>
+<h4>6. Guidelines</h4>
+
+<h4>Live Demo Link: <a href="http://34.70.177.116:8000/login/" target="_blank">http://34.70.177.116:8000/login/</a> </h4>
+<p>This Instance may go down, if it goes down, I will update this link. Also, /login/ is important as / was not working.</p>
+
 **Setup Instructions**
 
 <h3>1. Download the <code>ml_models.zip</code> File</h3>
@@ -24,27 +33,32 @@
 <ul>
     <li>Install Poetry (Dependency Manager):</li>
     <pre><code>pip install poetry</code></pre>
+    <img src="road_accident_severity_app/images/pip_poetry.jpg" alt="pip_poetry.jpg">
     <li>Install project dependencies (make sure you’re in the directory where <code>poetry.lock</code> exists):</li>
     <pre><code>poetry install</code></pre>
+    <img src="road_accident_severity_app/images/poetry_install.jpg" alt="poetry_install.jpg">
 </ul>
 
 <h3>3. Activate the Poetry Virtual Environment</h3>
 <p>Activate the virtual environment created by Poetry:</p>
 <pre><code>poetry shell</code></pre>
+<img src="road_accident_severity_app/images/poetry_shell.png" alt="poetry_shell.png">
 
-<h3>4. Run Database Migrations</h3>
+<h3>4. Run Database Migrations | You should be in road_accident_severity_app folder</h3>
 <p>To set up the database, run:</p>
 <pre><code>python manage.py migrate</code></pre>
+<img src="road_accident_severity_app/images/migrate.png" alt="migrate.png">
 
 <h3>5. Start the Server</h3>
 <p>Now, start the development server by running:</p>
 <pre><code>python manage.py runserver</code></pre>
-
+<img src="road_accident_severity_app/images/runserver.png" alt="runserver.png">
 <hr>
 
 **Register and Login**
 <p>Once the server is running, open your browser and go to the URL:</p>
-<pre><code>http://127.0.0.1:8000/</code></pre>
+<pre><code>http://127.0.0.1:8000/login/</code></pre>
+<p>/login/ is important as / will not going to work
 
 <h3>Register</h3>
 <p>First, register a new user by filling in the necessary details in the registration form.</p>
