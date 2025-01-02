@@ -17,7 +17,7 @@
 <h4>5. ML Model Results</h4>
 <h4>6. Guidelines</h4>
 
-<h4>Live Demo Link: <a href="http://34.70.177.116:8000/login/" target="_blank">http://34.70.177.116:8000/login/</a> </h4>
+<h4>Video Link: <a href="https://drive.google.com/file/d/12MUpvx2y0xK9hq_jEnSePjqvCclMPQqi/view?usp=drive_link" target="_blank">Link</a> </h4>
 <p>This Instance may go down, if it goes down, I will update this link. Also, /login/ is important as / was not working.</p>
 
 **Setup Instructions**
